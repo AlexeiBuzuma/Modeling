@@ -1,29 +1,24 @@
 import abc
 from steps.base import TaskReceiver
 
+
 STATES = [
-    "0000",  # P1
-    "1000",  # P2
-    "0100",  # P3
-    "1001",  # P4
-    "1100",  # P5
-    "0101",  # P6
-    # P7 skipped
-    "1011",  # P8
-    "1101",  # P9
-    "2101",  # P10
-    "0111",  # P11
-    "2100",  # P12
-    "1111",  # P13
-    "1211",  # P14
-    "2111",  # P15
-    "2211",  # P16
+    "0000",
+    "1000",
+    "0010",
+    "1010",
+    "0011",
+    "1001",
+    "1011",
+    "0111",
+    "1111",
+    "2111",
 ]
 
 
 GENERATOR_INDEX = 0
-CHANHEL_PI1_INDEX = 1
-BUFFER_INDEX = 2
+BUFFER_INDEX = 1
+CHANHEL_PI1_INDEX = 2
 CHANNEL_PI2_INDEX = 3
 
 
@@ -64,7 +59,10 @@ class AbsoluteBandwidthChecker(Checker):
         theoretical_bandwidth = 0
 
         for index, state in enumerate(STATES):
-            if state.endswith("1"):
+            if state[CHANHEL_PI1_INDEX] == "1":
+                theoretical_bandwidth += theoretical_probability[index] * (1 - self._pi1)
+
+            if state[CHANNEL_PI2_INDEX] == "1":
                 theoretical_bandwidth += theoretical_probability[index] * (1 - self._pi2)
 
         return theoretical_bandwidth
@@ -107,3 +105,29 @@ class BufferLengthChecker(Checker):
         return sum(theoretical_probability[index]
                    for index, state in enumerate(STATES)
                    if state[BUFFER_INDEX] == "1")
+
+
+class LockedProbabilityChecker(Checker):
+
+    locked_state_counter = 0
+
+    @property
+    def checker_name(self):
+        return "Locked Probability   Pбл"
+
+    def check(self, chain):
+        for step in chain:
+            if step.current_state == 2:
+                LockedProbabilityChecker.locked_state_counter += 1
+
+    def get_theoretical_results(self, theoretical_probability):
+        locked_probability = 0
+        locked_state = "2"
+
+        for index, state in enumerate(STATES):
+            locked_probability += state.count(locked_state) * theoretical_probability[index]
+
+        return locked_probability
+
+    def get_experimental_results(self):
+        return LockedProbabilityChecker.locked_state_counter / self._count
