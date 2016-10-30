@@ -25,14 +25,15 @@ class TaskReceiver(Step):
     task_count = 0
 
     def set_task(self, task):
-        self.total_lifetime += task.age
-        self.task_count += 1
+        TaskReceiver.total_lifetime += task.age
+        TaskReceiver.task_count += 1
 
     def is_ready_to_accept_task(self):
         return True
 
-    def get_average_lifetime(self):
-        return self.total_lifetime / self.task_count
+    @classmethod
+    def get_average_lifetime(cls):
+        return cls.total_lifetime / cls.task_count
 
     def tick(self):
         pass
