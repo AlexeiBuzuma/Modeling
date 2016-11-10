@@ -73,17 +73,50 @@ class AbsoluteBandwidthChecker(Checker):
         return TaskReceiver.task_count / self._count
 
 
+class AverageNumberOfTasks(Checker):
+    number_of_task = 0
+    number_of_ticks = 0
+
+    @property
+    def checker_name(self):
+        return "Average number of tasks "
+
+    def check(self, chain):
+        self.number_of_ticks += 1
+
+        for step in chain:
+            if step.current_state != 0:
+                self.number_of_task += 1
+
+    @classmethod
+    def get_theoretical_results(self, theoretical_probability):
+        average_number_of_tasks = 0
+        for index, state in enumerate(STATES):
+            average_number_of_tasks += (4 - state.count("0")) * theoretical_probability[index]
+
+        return average_number_of_tasks
+
+    def get_experimental_results(self):
+        return self.number_of_task / self.number_of_ticks
+
+
 class AverageLifetimeChecker(Checker):
 
     @property
     def checker_name(self):
         return "Average lifetime   (Wc)"
 
-    def check(self, **kwargs):
+    def check(self, chain):
         pass
 
-    def get_theoretical_results(self, theoretical_probability):
-        return "None"
+    @classmethod
+    def get_theoretical_results(cls, theoretical_probability):
+        intensity = 0
+        for index, state in enumerate(STATES):
+            if state[GENERATOR_INDEX] == "0":
+                intensity += theoretical_probability[index]
+
+        return AverageNumberOfTasks.get_theoretical_results(theoretical_probability) / intensity
 
     def get_experimental_results(self):
         return TaskReceiver.get_average_lifetime()

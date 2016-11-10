@@ -42,9 +42,6 @@ class Channel(Step):
                     self._current_state = EMPTY
                     return
 
-        # print(self._task.age)
-
-
         number = uniform(0, 1)
         if number >= self._probability:
             # self._current_state = EMPTY
@@ -63,7 +60,6 @@ class Channel(Step):
                 logging.debug("Channel '{}[{}]' locked with number {}".format(self.name, self._probability, number))
 
         logging.debug("Channel '{}[{}]' not executed with number {}".format(self.name, self._probability, number))
-
 
     @property
     def current_state(self):

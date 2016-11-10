@@ -6,7 +6,7 @@ from steps.buffer import Buffer
 from steps.channel import Channel
 from steps.generator import Generator
 from steps.base import TaskReceiver
-from checkers import Checker, BufferLengthChecker, AbsoluteBandwidthChecker, AverageLifetimeChecker
+from checkers import Checker, BufferLengthChecker, AbsoluteBandwidthChecker, AverageLifetimeChecker, AverageNumberOfTasks
 from collections import Counter
 from prettytable import PrettyTable
 import numpy as np
@@ -47,9 +47,9 @@ STATES = [
 def _parse_args():
     parser = argparse.ArgumentParser(description='Modeling')
 
-    parser.add_argument("--count", dest="count", type=int, default=200000, help="Number of iterations")
+    parser.add_argument("--count", dest="count", type=int, default=100000, help="Number of iterations")
     parser.add_argument("--pi1", dest="pi1", type=float, default=0.4)
-    parser.add_argument("--pi2", dest="pi2", type=float, default=0.8)
+    parser.add_argument("--pi2", dest="pi2", type=float, default=0.5)
 
     return parser.parse_args()
 
@@ -176,13 +176,16 @@ def main():
     buffer_length_checker = BufferLengthChecker(args.pi1, args.pi2, args.count)
     bandwidth_checker = AbsoluteBandwidthChecker(args.pi1, args.pi2, args.count)
     average_lifetime_checker = AverageLifetimeChecker(args.pi1, args.pi2, args.count)
+    average_number_of_tasks = AverageNumberOfTasks(args.pi1, args.pi2, args.count)
 
     experiment = Experiment(args.pi1, args.pi2, args.count)
     experiment.add_checker(buffer_length_checker)
+    experiment.add_checker(average_number_of_tasks)
+    experiment.add_checker(average_lifetime_checker)
 
     experiment.run()
 
-    print_results_of_experiment(experiment, [buffer_length_checker, bandwidth_checker, average_lifetime_checker])
+    print_results_of_experiment(experiment, [buffer_length_checker, bandwidth_checker, average_lifetime_checker, average_number_of_tasks])
 
 if __name__ == '__main__':
     main()
